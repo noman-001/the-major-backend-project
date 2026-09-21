@@ -11,6 +11,19 @@ dotenv.config({
 
 // In this method we make another folder/file for mongodb and call it in index.js
 connectDB()
+// returns a promise
+.then(()=>{
+    app.on("error",(error)=>{
+        console.log("error: ",error);
+        throw error
+    })
+    app.listen(process.env.PORT || 8000,()=>{
+        console.log(`Server is running ar port: ${process.env.PORT}`);
+    })
+})
+.catch((err)=>{
+    console.log("MONGO DB connection failed!!",err);
+})
 
 
 
