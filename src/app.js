@@ -16,4 +16,15 @@ app.use(cookieParser())
 // Middleware: for example we request /instagram and the backend will supply account details
 // but before that we need to check whether log in happened or not, this is middleware
 
+
+// routes import 
+import userRouter from './routes/user.routes.js'
+
+
+
+// routes declaration
+app.use("/api/v1/users", userRouter)
+// http://localhost:8000/api/v1/users/register
+
+
 export { app }
