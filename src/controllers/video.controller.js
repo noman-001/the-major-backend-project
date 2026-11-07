@@ -105,7 +105,43 @@ const togglePublishStatus = asyncHandler(async(req, res)=>{
         );
 })
 
+const updateVideo = asyncHandler(async(req, res)=>{
+    const {videoId} = req.params;
+    const {title, description} = req.body;
+
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(400, "Invalid video ID");
+    }
+    if(!title?.trim() && !description?.trim() && !req.file){
+        throw new ApiError(400, "Atleast one field is required to update");
+    }
+    const video = await Video.findById(videoId);
+    if(!video){
+        throw new ApiError(404, "Video not found");
+    }
+    if(video.owner.toSring()!==req.user?._id.toString()){
+        throw new ApiError(403, "You do not have permission to update this video");
+    }
+    let newThumbnailUrl = video.thumbnail;
+    const thumbnailLocalPath = req.file?.path;
+    if(thumbnailLocalPath){
+        const uploadedThumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+        if(!uploadedThumbnail?.url){
+            throw new ApiError(500, "Failed to upload new thumbnail");
+        }
+        newThumbnailUrl = uploadedThumbnail.url;
+    }
+    if(title?.trim()) video.title = title;
+    if(description?.trim()) video.description = description;
+    video.thumbnail= newThumbnailUrl;
+    const updatedVideo = await video.save({validateBeforeSave:false});
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedVideo, "Video details updated successfully"));
+})
+
 export {
     getVideoById,
-    togglePublishStatus
+    togglePublishStatus,
+    updateVideo
 }
