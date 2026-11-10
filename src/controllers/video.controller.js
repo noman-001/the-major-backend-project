@@ -140,8 +140,98 @@ const updateVideo = asyncHandler(async(req, res)=>{
         .json(new ApiResponse(200, updatedVideo, "Video details updated successfully"));
 })
 
+const deleteVideo = asyncHandler(async(req, res)=>{
+    const {videoId} = req.params;
+    if(!isValidObjectId(videoId)){
+        throw new ApiError(400, "Invalid video ID");
+    }
+    const video = await Video.findById(videoId);
+    if(!video){
+        throw new ApiError(404, "Video not found");
+    }
+    if(video.owner.toString!==req.user?._id.toString()){
+        throw new ApiError(403, "You do not have permission to delete this video");
+    }
+    await Video.findByIdAndDelete(videoId);
+    return res
+        .status(200)
+        .json(new ApiResponse(200,{},"Video deleted successfully"));
+})
+
+const getAllVideos = asyncHandler(async(req, res)=>{
+    const {query, userId, sortBy = "createdAt", sortType="desc"}=req.query;
+    const pipeline=[];
+    // search filter: match text in title or description
+    if(query?.trim()){
+        pipeline.push({
+            $match:{
+                $or:[
+                    {title:{$regex:query.trim(),$options:"i"}},
+                    { description: { $regex: query.trim(), $options: "i" } }
+                ]
+            }
+        });
+    }
+    // channel filter 
+    if(userId){
+        if(!isValidObjectId(userId)){
+            throw new ApiError(400, "Invalid user ID");
+        }
+        pipeline.push({
+            $match:{
+                owner:new mongoose.Types.ObjectId(userId)
+            }
+        });
+    }
+    // privacy filter
+    pipeline.push({
+        $match:{
+            isPublished:true
+        }
+    });
+    
+    // Dynamic Sorting
+    pipeline.push({
+        $sort:{
+            [sortBy]:sortType==="asc"?1:-1
+        }
+    });
+
+    // video owner details
+    pipeline.push(
+        {
+            $lookup:{
+                from:"users",
+                localField:"owner",
+                foreignField:"_id",
+                as:"owner",
+                pipeline:[
+                    {
+                        $project:{
+                            fullName:1,
+                            username:1,
+                            avatar:1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields:{
+                owner:{$first:"$owner"}
+            }
+        }
+    );
+    const videos = await Video.aggregate(pipeline);
+    return res
+        .status(200)
+        .json(new ApiResponse(200, videos, "Videos fetched successfully"));
+})
+
 export {
     getVideoById,
     togglePublishStatus,
-    updateVideo
+    updateVideo,
+    deleteVideo,
+    getAllVideos
 }
