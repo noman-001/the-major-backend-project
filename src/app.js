@@ -25,6 +25,8 @@ import commentRouter from "./routes/comment.routes.js";
 import videoRouter from "./routes/video.routes.js";
 import subscriptionRouter from "./routes/subscription.routes.js";
 import playlistRouter from "./routes/playlist.routes.js";
+import healthcheckRouter from "./routes/healthcheck.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 
 
 // routes declaration
@@ -35,6 +37,8 @@ app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/playlists", playlistRouter);
+app.use("/api/v1/healthcheck", healthcheckRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 // http://localhost:8000/api/v1/users/register
 
 
