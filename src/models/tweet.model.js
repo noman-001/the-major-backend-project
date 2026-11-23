@@ -2,7 +2,7 @@ import mongoose, {Schema} from "mongoose";
 
 const tweetSchema = new Schema({
     content:{
-        type:string,
+        type:String,
         required: true
     },
     owner:{

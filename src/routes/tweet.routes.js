@@ -10,9 +10,9 @@ import {verifyJWT} from "../middlewares/auth.middleware.js";
 const router = Router();
 
 router.use(verifyJWT);
-router.use("/").post(createTweet);
-router.use("/user/:userId").get(getUserTweet);
-router.use("/:tweetId")
+router.route("/").post(createTweet);
+router.route("/user/:userId").get(getUserTweet);
+router.route("/:tweetId")
     .patch(updateTweet)
     .delete(deleteTweet);
 
